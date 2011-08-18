@@ -1,6 +1,21 @@
 from django.db import models
 from django.contrib import admin
-from datetime import datetime, timedelta
+
+
+class Client(models.Model):
+    
+    company_name = models.CharField(max_length="50")
+    contact_email = models.EmailField()
+    contact_name = models.CharField(max_length="50", blank=True, default="")
+    
+    address_1 = models.CharField(max_length="50", blank=True, default="")
+    address_2 = models.CharField(max_length="50", blank=True, default="")
+    address_3 = models.CharField(max_length="50", blank=True, default="")
+    address_4 = models.CharField(max_length="50", blank=True, default="")
+
+
+    def __unicode__(self):
+        return self.company_name
 
 
 class Project(models.Model):
@@ -9,24 +24,29 @@ class Project(models.Model):
     hourly_wage = models.IntegerField(default="50")
     currency = models.CharField(max_length="3", default="GBP")
 
+    client = models.ForeignKey(Client, null=True, blank=True)
+
+
     def __unicode__(self):
         return self.name
 
 
-class TimeEntry(models.Model):
+    def unpaid_hours(self):
+        entries = self.timeentry_set.filter(invoice__isnull=True)
+        entries = self.timeentry_set.filter(invoice=1)
 
-    project = models.ForeignKey(Project)
-    start_time = models.DateTimeField()
-    duration_in_minutes = models.IntegerField()
-    task_description = models.CharField(max_length="120", default="", blank=True)
+        minutes = 0
+        for entry in entries:
+            minutes += entry.duration_in_minutes
 
-    class __Meta__:
-        ordering = ['-start_time']
-
-    def end_time(self):
-        delta = timedelta(minutes=self.duration_in_minutes)
-        return self.start_time + delta
+        return minutes / 60.0
 
 
+    def unpaid_amount(self):
+        return self.unpaid_hours() * self.hourly_wage
+
+
+
+
+admin.site.register(Client)
 admin.site.register(Project)
-admin.site.register(TimeEntry)

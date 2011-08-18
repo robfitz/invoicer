@@ -1,6 +1,3 @@
-# Initialize App Engine and import the default settings (DB backend, etc.).
-# If you want to use a different backend you have to remove all occurences
-# of "djangoappengine" from this file.
 from djangoappengine.settings_base import *
 
 import os
@@ -9,7 +6,7 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
+    ('Rob Fitzpatrick', 'robftz@gmail.com'),
 )
 
 MANAGERS = ADMINS
@@ -19,26 +16,9 @@ DATABASES['native'] = DATABASES['default']
 DATABASES['default'] = {'ENGINE': 'dbindexer', 'TARGET': 'native'}
 AUTOLOAD_SITECONF = 'indexes'
 
-#DATABASES = {
-#   'default': {
-#       'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-#       'NAME': 'local_db',                      # Or path to database file if using sqlite3.
-#       'USER': '',                      # Not used with sqlite3.
-#       'PASSWORD': '',                  # Not used with sqlite3.
-#       'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-#       'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-#   }
-#}
-
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
-# although not all choices may be available on all operating systems.
-# On Unix systems, a value of None will cause Django to use the same
-# timezone as the operating system.
-# If running in a Windows environment this must be set to the same as your
-# system time zone.
-#TIME_ZONE = 'Europe/London-1'
-TIME_ZONE = 'Etc/GMT'
+TIME_ZONE = 'Europe/London'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -75,7 +55,6 @@ SECRET_KEY = '=3_njmc36@ik4e358r(yiz5+6a(!!uo+%)uzn1t!1fmez0@31m'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -99,13 +78,6 @@ ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (os.path.join(os.path.dirname(__file__), 'templates'),)
 
-#TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-#   '/Users/robfitz/www/invoicer/templates/',
-#)
-
 # This test runner captures stdout and associates tracebacks with their
 # corresponding output. Helps a lot with print-debugging.
 TEST_RUNNER = 'djangotoolbox.test.CapturingTestSuiteRunner'
@@ -121,7 +93,14 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.admindocs',
 
-    'timetracker',
+    's_stream',
+    's_users',
+    's_projects',
+    's_media',
+    's_broadcast',
+
+    #add your apps here
+    #
 
     # djangoappengine should come last, so it can override a few manage.py commands
     'djangoappengine',
@@ -130,3 +109,4 @@ INSTALLED_APPS = (
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
+AUTH_PROFILE_MODULE = 's_users.UserProfile'

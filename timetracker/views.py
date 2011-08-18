@@ -6,14 +6,17 @@ from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotAllow
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-from datetime import datetime
+from datetime import datetime, timedelta, date
 
 from timetracker.models import *
+from invoice.models import *
 
 
 def dashboard(request):
 
-    time_entries = TimeEntry.objects.all()
+    time_entries = TimeEntry.objects.all().order_by("start_time")
+    projects = Project.objects.all()
+    invoices = Invoice.objects.filter(is_default=False)
 
     try:
         timer_start_time = int(request.session['timer_start_time'])
@@ -67,6 +70,7 @@ def add(request):
         
         project_name = project_from_natural_text(text)
         time = time_from_natural_text(text)
+        date = date_from_natural_text(text)
         description = description_from_natural_text(text)
 
         if time:
@@ -110,6 +114,13 @@ def add(request):
         duration_delta = end - start
         duration_minutes = duration_delta.seconds / 60
 
+        if date:
+            start = datetime(year=date.year,
+                    month=date.month,
+                    day=date.day,
+                    hour=start.hour,
+                    minute=start.minute)
+
         matching_projects = Project.objects.filter(name=project_name)
         if matching_projects.count() == 0:
             #fluidly creates new projects when a time chunk
@@ -146,6 +157,25 @@ def time_from_natural_text(text):
 
     return None
 
+
+def date_from_natural_text(text):
+
+    for tok in text.split():
+        if is_date_token(tok):
+
+            date_toks = tok.split('/')
+            if len(date_toks) == 2:
+                #mm/dd
+                return date(year=datetime.now().year, 
+                        month=int(date_toks[0]),
+                        day=int(date_toks[1]))
+
+    return None
+
+
+            
+
+
 #all non-significant tokens after the first make up the description
 def description_from_natural_text(text):
 
@@ -153,7 +183,7 @@ def description_from_natural_text(text):
     found_project_name = False
 
     for tok in text.split():
-        if not is_time_token(tok):
+        if not is_time_token(tok) and not is_date_token(tok):
             if not found_project_name:
                 found_project_name = True
             elif not desc:
@@ -162,6 +192,10 @@ def description_from_natural_text(text):
                 desc = "%s %s" % (desc, tok)
 
     return desc 
+
+
+def is_date_token(tok):
+    return tok.find("/") != -1
 
 
 def is_time_token(tok):

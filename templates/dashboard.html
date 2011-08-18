@@ -10,6 +10,15 @@ position:relative;
 position:absolute;
 left:-50px;
 }
+.edit_project, .edit_invoice {
+position:absolute;
+left:-40px;
+}
+
+th, td {
+padding:0 10px;
+}
+
 {% endblock %}
 
 {% block content %}
@@ -41,6 +50,8 @@ left:-50px;
             </p>
         </div>
 
+        <h2>Recent work</h2>
+
         {% for entry in time_entries %}
 
             {% ifchanged entry.start_time.date %}
@@ -56,7 +67,7 @@ left:-50px;
 
             <li class="time_entry">
             <strong>{{ entry.project }}</strong> {{ entry.duration_in_minutes }}m on <i>{{ entry.task_description }}</i> from {{ entry.start_time|date:"P" }} to {{ entry.end_time|date:"P" }}
-                <a href="/admin/timetracker/timeentry/{{ entry.pk }}/" class="small edit_time_entry">Edit</a>
+                <a href="/admin/invoice/timeentry/{{ entry.pk }}/" class="small edit_time_entry">Edit</a>
             </li>
 
         {% endfor %}
@@ -126,8 +137,104 @@ left:-50px;
         });
     </script>
 
-    TODO: project list
-    {% for project in projects %}
-    {% endfor %}
+    <h2>Projects</h2>
+
+    {% if projects %}
+        <table>
+
+            <tr>
+                <th>Project</th>
+                <th>Client</th>
+                <th style="text-align:right;">Unbilled hours</th>
+                <th style="text-align:right;">Unbilled amount</th>
+                <th>&nbsp;</th>
+            </tr>
+
+            {% for project in projects %}
+                <tr>
+                    <td>
+                        <span style="position:relative;"><a href="/admin/timetracker/project/{{ project.pk }}/" class="small edit_project">Edit</a></span>
+                        {{ project.name }}
+                    </td>
+                    <td>
+                        {% if project.client %}
+                            <a href="/admin/timetracker/client/{{ project.client.pk }}/">{{ project.client }}</a>
+                        {% else %}
+                            <a href="/admin/timetracker/project/{{ project.pk }}/">None</a>
+                        {% endif %}
+
+                    </td>
+                    <td style="text-align:right;">{{ project.unpaid_hours|floatformat:"1" }}</td>
+                    <td style="text-align:right;">{{ project.unpaid_amount|floatformat:"2" }} {{ project.currency }}</td>
+                    {% if project.unpaid_amount > 0 %}
+                        {% if project.client %}
+                            <td><a href="/invoice/new/{{ project.id }}/">Invoice now</a></td>
+                        {% else %} 
+                            <td><a href="/admin/timetracker/project/{{ project.pk }}/">Set client before invoicing</a></td> 
+                        {% endif %}
+                    {% else %}
+                        <td></td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+
+        </table>
+    {% else %}
+        <p>
+        No projects yet. Add a TimeEntry using the field above to automatically create your first project.
+        </p>
+    {% endif %}
+
+    <h2>Invoices</h2>
+
+    {% if invoices %}
+        <table>
+
+            <tr>
+                <th>Project</th>
+                <th style="text-align:right;">Amount</th>
+                <th>Status</th>
+                <th>&nbsp;</th>
+            </tr>
+
+            {% for invoice in invoices %}
+                <tr>
+                    <td><span style="position:relative;"><a href="/admin/invoice/invoice/{{ invoice.pk }}/" class="edit_invoice">Edit</a></span>
+                        <a href="/invoice/{{ invoice.key }}/">{{ invoice.project }}</a>
+                    </td>
+                    <td style="text-align:right;">{{ invoice.amount|floatformat:"2" }} {{ invoice.project.currency }}</td>
+                    {% if invoice.is_paid %}
+
+                        <td class="green">Paid</td>
+                        <td></td>
+
+                    {% else %}{% if invoice.num_times_sent == 0 %}
+                    
+                        <td>Draft</td>
+                        <td>
+                            <a href="/invoice/{{ invoice.id }}/send/">Send</a> 
+                            <a href="/admin/invoice/invoice/{{ invoice.pk }}/delete/">Delete</a></td>
+                    
+                    {% else %}{% if invoice.num_times_sent == 1 %}
+
+                        <td class="yellow">{{ invoice.originally_sent|timesince }} since sent on {{ invoice.originally_sent_on|date:"M j" }}</td>
+                        <td><a href="/invoice/send/">Send reminder</a></td>
+
+                    {% else %}{% if invoice.num_times_sent > 1 %}
+
+                        <td class="red">{{ invoice.last_sent_on|timesince }} since sent on {{ invoice.last_sent_on|date:"M j" }}</td> 
+                        <td><a href="/invoice/send/">Send reminder</a></td> 
+
+                    {% endif %}{% endif %}{% endif %}{% endif %}
+
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>
+        No invoices yet.
+        </p>
+    {% endif %}
+        
 
 {% endblock content %}

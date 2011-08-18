@@ -134,6 +134,15 @@ class ListField(AbstractIterableField):
         if values and self.ordering:
             values.sort(key=self.ordering)
         return super(ListField, self).pre_save(model_instance, add)
+ 
+    def formfield(self, **kwargs): 
+        from django.forms import CharField 
+
+        defaults = {'form_class': CharField} 
+        defaults.update(kwargs) 
+
+        return super(AbstractIterableField, self).formfield(**defaults) 
+
 
 class SetField(AbstractIterableField):
     """
