@@ -3,6 +3,7 @@
 {% block meta %}
 
 <script src="http://scripts.embed.ly/jquery.embedly.min.js"></script>
+
 {% endblock %}
 
 {% block header_title %}
@@ -120,39 +121,63 @@ Multiplayful
 </div>
 
 <script>
-    $(function() {
-        reset_ajax_links();
+    $(window).load(function(){
+        reset_ajax();
     });
 
-    function reset_ajax_links() {
-        $(".update a, .info a").click( function (event) {
+    function reset_ajax() {
+        $(".update a, .info .title_inline a").click( function (event) {
 
-            $.get($(this).attr("href"),
+            var url = $(this).attr("href");
+            var url_start = url.substring(0, 3);
+            if (url_start == "www" || url_start == "htt") {
+                // don't ajax if it's external
+                return true;
+            }
+            else if (url.split(".").length > 1) {
+                // don't ajax if it has a file extension
+                return true;
+            }
+
+            $.get(url,
                 function(data) {
                     $(".info").html(data);
-                }
-            );
-            $.get($(this).attr("href"),
-                function(data) {
-                    $(".info").html(data);
+                    reset_ajax();
                 }
             ); 
 
             return false;
         }); 
+
+        $(".update a.lightbox").children().unwrap();
+
+        $(".update").each(function() {
+
+            
+            $(this).find(".contents img").wrap(function() {
+                return "<a href='" + $(this).attr('src') + "' class='lightbox' />";
+            }); 
+
+            $(this).find(".lightbox").lightBox();
+        });
+
+        $('.info .lightbox').lightBox();
+
+
     }
 
 
-    $(".update").click( function (event) {
-        $.get("/blurb/" + $(this).attr("name") + "/",
-            function(data) {
-                $(".info").html(data);
-                reset_ajax_links();
-            }
-        ); 
-    });
-
     $(function() { 
+
+        $(".update").click( function (event) {
+            $.get("/blurb/" + $(this).attr("name") + "/",
+                function(data) {
+                    $(".info").html(data);
+                    reset_ajax();
+                }
+            ); 
+        });
+
         $('.update').embedly({key:'d3f9f6e8c7ee11e0b9a74040d3dc5c07'});
 
         // highlight effects

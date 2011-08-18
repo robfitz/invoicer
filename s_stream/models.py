@@ -77,7 +77,7 @@ class Update(models.Model):
 
 
         return """<div class='update %s' id='%s' name='%s'>
-    <img src='%s' class='thumb' />
+    <a><img src='%s' class='thumb' /></a>
     <div class='contents'>
         <h4 class='blurb_title'>%s</h4>
         <p>%s</p>

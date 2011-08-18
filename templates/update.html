@@ -16,5 +16,13 @@
 <p>
     {{ update.content|safe }} 
 </p>
+
+<script>
+    $(function() {
+        $(".post_contents img").wrap(function() {
+            return "<a href='" + $(this).attr('src') + "' class='lightbox' />";
+            }); 
+    });
+</script>
 </div>
 
